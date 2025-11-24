@@ -1,0 +1,3 @@
+[submodule "AMNLT_orignal_models"]
+	path = AMNLT_orignal_models
+	url = https://github.com/efm18/AMNLT.git
