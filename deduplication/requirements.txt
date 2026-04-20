@@ -1,0 +1,5 @@
+datasets
+stringzilla
+stringzillas-cpus
+numpy
+scipy
