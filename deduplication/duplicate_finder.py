@@ -38,7 +38,7 @@ def calc_col_indices(i, row_starts):
 
 def get_split(index, splits):
     """
-    get split name and original index from index in similarity matrix
+    get split name and original index from row index in similarity matrix
        `i`       index
        `splits`  sorted list of tuples (`split_name`,`starting_index`) by starting index (ascending)
     """
@@ -73,30 +73,34 @@ def main(args):
         print(f"Min. edit distance:   {np.min(similarity_matrix)} (number of edit distances: {np.count_nonzero(similarity_matrix <= np.min(similarity_matrix))})")
         print(f"Mean edit distance:   {np.mean(similarity_matrix)} (number of edit distances <= mean: {np.count_nonzero(similarity_matrix <= np.mean(similarity_matrix))})")
         print(f"Max. edit distance:   {np.max(similarity_matrix)}")
-        print(f"Median edit distance: {np.median(similarity_matrix)}")
 
-        counts = np.zeros(num_samples, dtype=np.uint64)
-        counts_by_split = np.zeros((len(splits), len(splits)), dtype=np.uint64)
+        duplicates_by_split = np.zeros((len(splits), len(splits)), dtype=np.uint64)
         split_index = {}
         for i,(split,_) in enumerate(splits):
             split_index[split] = i
         for i in range(num_samples):
             split, _ = get_split(i, splits)
+            split_stats = {x:0 for x,_ in splits}
             if i < num_samples - 1:
                 row_end = row_starts[i] + num_samples - i - 1
                 mask = similarity_matrix[row_starts[i]:row_end] <= args.threshold
-                counts[i] += np.sum(mask)
                 indices = np.nonzero(mask)[0]
                 for index in indices:
                     other_split, _ = get_split(i + 1 + index, splits)
-                    counts_by_split[split_index[split],split_index[other_split]] += 1
-                    if split_index[split] != split_index[other_split]:
-                        counts_by_split[split_index[other_split], split_index[split]] += 1
+                    split_stats[other_split] += 1
             if i >= 1:
                 col_indices = calc_col_indices(i, row_starts)
                 mask = similarity_matrix[col_indices] <= args.threshold
-                counts[i] += np.sum(mask)
-        print_symmetric_matrix(counts_by_split, [x[0] for x in splits])
+                indices = np.nonzero(mask)[0]
+                for index in indices:
+                    other_split, _ = get_split(index, splits)
+                    split_stats[other_split] += 1
+            for other_split, count in split_stats.items():
+                if count > 0:
+                    duplicates_by_split[split_index[split], split_index[other_split]] += 1
+        print("Duplicates by split:")
+        print_symmetric_matrix(duplicates_by_split, [x[0] for x in splits])
+        print("(row/col - how many samples from 'row' split are in 'col' split)")
 if __name__ == "__main__":
     args = parser.parse_args()
     main(args)
