@@ -6,6 +6,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="Find duplicates based on precomputed edit distance matrix")
     parser.add_argument("--stats_only", default=False, action="store_true", help="Print statistics of duplicates")
     parser.add_argument("--threshold", default=3, type=int, help="Edit distance threshold for samples to be considered duplicates")
+    parser.add_argument("--output", default="duplicates.json", type=str, help="Output json file of duplicates")
     parser.add_argument("similarity_matrix", help="Similarity matrix file name (.bin) with accompanying .json file")
 
 # Calculates starting index of each row
@@ -35,39 +36,65 @@ def print_symmetric_matrix(matrix, labels):
     for i,row in enumerate(matrix):
         print(f"{labels[i]: <{col_width}}", *[f"{x: <{col_width}}" for x in row], sep=" | ")
 
-def stats(similarity_matrix, splits, num_samples, row_starts, threshold):
+def duplicate_finder(similarity_matrix, splits, num_samples, row_starts, threshold, stats_only = False, prune_empty_sets = True):
     print(f"Edit distances are clipped to range [0, {np.iinfo(similarity_matrix.dtype).max}]. This may influence the statistics.")
     print(f"Min. edit distance:   {np.min(similarity_matrix)} (number of edit distances: {np.count_nonzero(similarity_matrix <= np.min(similarity_matrix))})")
     print(f"Mean edit distance:   {np.mean(similarity_matrix)} (number of edit distances <= mean: {np.count_nonzero(similarity_matrix <= np.mean(similarity_matrix))})")
     print(f"Max. edit distance:   {np.max(similarity_matrix)}")
 
     duplicates_by_split = np.zeros((len(splits), len(splits)), dtype=np.uint64)
+    duplicates = {}
     split_index = {}
     for i,(split,_) in enumerate(splits):
         split_index[split] = i
+        duplicates[split] = {}
     for i in range(num_samples):
-        split, _ = get_split(i, splits)
+        split, original_index = get_split(i, splits)
         split_stats = {x:0 for x,_ in splits}
+        duplicates_for_i = {x: set() for x,_ in splits}
         if i < num_samples - 1:
             row_end = row_starts[i] + num_samples - i - 1
             mask = similarity_matrix[row_starts[i]:row_end] <= threshold
-            indices = np.nonzero(mask)[0]
-            for index in indices:
-                other_split, _ = get_split(i + 1 + index, splits)
-                split_stats[other_split] += 1
+            if np.any(mask):
+                indices = np.nonzero(mask)[0]
+                for index in indices:
+                    other_split, other_orig_index = get_split(i + 1 + index, splits)
+                    split_stats[other_split] += 1
+                    if not stats_only:
+                        duplicates_for_i[other_split].add(int(other_orig_index))
         if i >= 1:
             col_indices = calc_col_indices(i, row_starts)
             mask = similarity_matrix[col_indices] <= threshold
-            indices = np.nonzero(mask)[0]
-            for index in indices:
-                other_split, _ = get_split(index, splits)
-                split_stats[other_split] += 1
+            if np.any(mask):
+                indices = np.nonzero(mask)[0]
+                for index in indices:
+                    other_split, other_orig_index = get_split(index, splits)
+                    split_stats[other_split] += 1
+                    if not stats_only:
+                        duplicates_for_i[other_split].add(int(other_orig_index))
         for other_split, count in split_stats.items():
             if count > 0:
                 duplicates_by_split[split_index[split], split_index[other_split]] += 1
+        if not stats_only:
+            if prune_empty_sets:
+                for x,_ in splits:
+                    if len(duplicates_for_i[x]) == 0:
+                        del duplicates_for_i[x]
+            save = False
+            for x in duplicates_for_i.keys():
+                duplicates_for_i[x] = sorted(list(duplicates_for_i[x]))
+                if len(duplicates_for_i[x]) > 0:
+                    save = True
+            if save:
+                duplicates[split][int(original_index)] = duplicates_for_i
+    
     print("Duplicates by split:")
     print_symmetric_matrix(duplicates_by_split, [x[0] for x in splits])
     print("(row/col - how many samples from 'row' split are in 'col' split)")
+
+    if not stats_only:
+        return duplicates
+    return None
 
 def main(args):
     with open(args.similarity_matrix + ".json", "r") as f:
@@ -84,10 +111,10 @@ def main(args):
     splits = list(config["split_starts"].items())
     splits.sort(key=lambda x: x[1])
     
-    stats(similarity_matrix, splits, num_samples, row_starts, args.threshold)
-    
-    if args.stats_only:
-        return
+    duplicates = duplicate_finder(similarity_matrix, splits, num_samples, row_starts, args.threshold, stats_only=args.stats_only)
+    if not args.stats_only:
+        with open(args.output, "w") as f:
+            json.dump(duplicates, f, ensure_ascii=False)
         
 if __name__ == "__main__":
     args = parser.parse_args()
