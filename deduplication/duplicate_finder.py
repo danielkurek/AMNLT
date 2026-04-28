@@ -1,5 +1,4 @@
 import numpy as np
-from tqdm import tqdm
 import argparse
 import json
 
@@ -8,23 +7,6 @@ if __name__ == "__main__":
     parser.add_argument("--stats", default=False, action="store_true", help="Print statistics of duplicates")
     parser.add_argument("--threshold", default=3, type=int, help="Edit distance threshold for samples to be considered duplicates")
     parser.add_argument("similarity_matrix", help="Similarity matrix file name (.bin) with accompanying .json file")
-
-
-def worker_init(keep_whitespace, keep_musictag):
-    global compiled_regex
-    assert not keep_whitespace or not keep_musictag
-    pattern = ""
-    if not keep_whitespace and not keep_musictag:
-        pattern = r"(\s|<m>)"
-    elif not keep_whitespace:
-        pattern = r"\s"
-    elif not keep_musictag:
-        pattern = r"<m>"
-    compiled_regex = re.compile(pattern)
-
-def preprocess(sample):
-    global compiled_regex
-    return compiled_regex.sub("", sample)
 
 # Calculates starting index of each row
 def calc_row_starts(n):
