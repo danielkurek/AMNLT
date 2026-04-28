@@ -4,7 +4,7 @@ import json
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="Find duplicates based on precomputed edit distance matrix")
-    parser.add_argument("--stats", default=False, action="store_true", help="Print statistics of duplicates")
+    parser.add_argument("--stats_only", default=False, action="store_true", help="Print statistics of duplicates")
     parser.add_argument("--threshold", default=3, type=int, help="Edit distance threshold for samples to be considered duplicates")
     parser.add_argument("similarity_matrix", help="Similarity matrix file name (.bin) with accompanying .json file")
 
@@ -84,8 +84,10 @@ def main(args):
     splits = list(config["split_starts"].items())
     splits.sort(key=lambda x: x[1])
     
-    if args.stats:
-        stats(similarity_matrix, splits, num_samples, row_starts, args.threshold)
+    stats(similarity_matrix, splits, num_samples, row_starts, args.threshold)
+    
+    if args.stats_only:
+        return
         
 if __name__ == "__main__":
     args = parser.parse_args()
