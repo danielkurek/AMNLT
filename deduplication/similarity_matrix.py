@@ -9,7 +9,7 @@ import re
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="Compute similarity matrix for a column of strings from dataset")
-    parser.add_argument("-t", "--threads", type=int, default=None, help="Process file in multiple threads")
+    parser.add_argument("-t", "--threads", type=int, default=1, help="Process file in multiple threads")
     parser.add_argument("-o", "--output", type=str, default="similarity_stats.bin", help="Similarity stats output")
     parser.add_argument("--column", type=str, default="transcription", help="Column name for which we compute the similarity matrix")
     parser.add_argument("--keep_whitespace", default=False, action="store_true", help="Keep whitespace characters in strings, otherwise they are deleted before distance computation")
