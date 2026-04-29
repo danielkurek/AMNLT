@@ -1,11 +1,19 @@
 import numpy as np
 import argparse
 import json
+from datasets import load_dataset
+from skimage.metrics import structural_similarity as ssim
+from multiprocessing import Pool
+from functools import partial
+import tqdm
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="Find duplicates based on precomputed edit distance matrix")
+    parser.add_argument("-t", "--threads", type=int, default=1, help="Process within multiple threads")
     parser.add_argument("--stats_only", default=False, action="store_true", help="Print statistics of duplicates")
     parser.add_argument("--threshold", default=3, type=int, help="Edit distance threshold for samples to be considered duplicates")
+    parser.add_argument("--check_images", default=False, action="store_true", help="Validate duplicates by comparing images. Duplicate will be reported only if both the transcription and the image are same.")
+    parser.add_argument("--image_threshold", default=0.97, type=float, help="Threshold for SSIM between image to detect duplicates")
     parser.add_argument("--output", default="duplicates.json", type=str, help="Output json file of duplicates")
     parser.add_argument("similarity_matrix", help="Similarity matrix file name (.bin) with accompanying .json file")
 
@@ -96,6 +104,48 @@ def duplicate_finder(similarity_matrix, splits, num_samples, row_starts, thresho
         return duplicates
     return None
 
+def image_duplicate_worker_init(dataset_path):
+    global ds
+    ds = load_dataset(dataset_path)
+
+def image_duplicate_process(item, split, threshold):
+    global ds
+    index, duplicates = item
+    for other_split in duplicates.keys():
+        orig_img = ds[split]["image"][int(index)]
+        size = (orig_img.width // 4, orig_img.height // 4)
+        im1 = np.asarray(orig_img.convert('L').resize(size))
+        i = 0
+        while i < len(duplicates[other_split]):
+            other_index = duplicates[other_split][i]
+            im2 = np.asarray(ds[other_split]["image"][int(other_index)].convert('L').resize(size))
+            score = ssim(im1, im2, data_range=255.0)
+            if score < threshold:
+                duplicates[other_split].pop(i)
+                continue # next item is at position i
+            i += 1
+    for other_split in list(duplicates.keys()):
+        if len(duplicates[other_split]) == 0:
+            del duplicates[other_split]
+    if len(duplicates) == 0:
+        return index, None
+    return index, duplicates
+
+def image_duplicate_filter(duplicates, dataset_path, threshold, threads):
+    pool = Pool(threads, initializer=image_duplicate_worker_init, initargs=(dataset_path,))
+    for split in duplicates.keys():
+        process_fn = partial(image_duplicate_process, split=split, threshold=threshold)
+        delete_indices = []
+        for result in tqdm.tqdm(pool.imap_unordered(process_fn, duplicates[split].items()), total=len(duplicates[split])):
+            index, value = result
+            if value is None:
+                delete_indices.append(index)
+            else:
+                duplicates[split][index] = value
+        for index in delete_indices:
+            del duplicates[split][index]
+    return duplicates
+
 def main(args):
     with open(args.similarity_matrix + ".json", "r") as f:
         config = json.load(f)
@@ -112,9 +162,12 @@ def main(args):
     splits.sort(key=lambda x: x[1])
     
     duplicates = duplicate_finder(similarity_matrix, splits, num_samples, row_starts, args.threshold, stats_only=args.stats_only)
-    if not args.stats_only:
-        with open(args.output, "w") as f:
-            json.dump(duplicates, f, ensure_ascii=False)
+    if args.stats_only:
+        return
+    if args.check_images:
+        duplicates = image_duplicate_filter(duplicates, config["dataset"], args.image_threshold, args.threads)
+    with open(args.output, "w", encoding="utf-8") as f:
+        json.dump(duplicates, f, ensure_ascii=False)
         
 if __name__ == "__main__":
     args = parser.parse_args()

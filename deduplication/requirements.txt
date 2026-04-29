@@ -3,3 +3,4 @@ stringzilla
 stringzillas-cpus
 numpy
 scipy
+scikit-image
