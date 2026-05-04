@@ -52,6 +52,10 @@ def main(args):
         for split, ds in dataset.items()
     })
 
+    print("Filtering results:")
+    for split in dataset.keys():
+        print(f"  {split}: {len(dataset[split])} -> {len(filtered_dataset[split])} ({len(dataset[split]) - len(filtered_dataset[split])} removed)")
+
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     save_path = output_dir / args.original_dataset_path.replace("/", "-")
