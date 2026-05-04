@@ -19,7 +19,7 @@ def prepare_indices(duplicates, split_priority = ["test", "validation", "train"]
     """
     filter_indices = {split: set() for split in duplicates.keys()}
     split_priority = {split: i for i,split in enumerate(split_priority)}
-    # the following filtering logic depends on symmetric relationship -> if a is duplicate of b than b is also duplicate of a
+    # the following filtering logic depends on symmetric relationship -> if a is duplicate of b then b is also duplicate of a
     for split in duplicates.keys():
         for index in duplicates[split].keys():
             index_int = int(index)
