@@ -1,5 +1,5 @@
 [submodule "AMNLT_orignal_models"]
-	path = AMNLT_orignal_models
+	path = AMNLT_original_models
 	url = https://github.com/danielkurek/AMNLT_original_models.git
 [submodule "GabcParser"]
 	path = GabcParser
