@@ -34,12 +34,14 @@ mkdir -p "$output_dir"
 datasets_info="s-gabc;PRAIG/Solesmes_staffLevel
 mei-gabc;PRAIG/Einsiedeln_staffLevel
 mei-gabc;PRAIG/Salzinnes_staffLevel
-gabc;PRAIG/GregoSynth_staffLevel
-"
+gabc;PRAIG/GregoSynth_staffLevel"
 
 # Prepend resulting dataset name to each line
 datasets_info_new=""
 while IFS= read -r LINE; do
+    if [ -z "$LINE" ]; then
+        continue
+    fi
     hf_dataset="$(echo "$LINE" | cut -d';' -f2)"
     name="$(echo "$hf_dataset" | python3 -c "from pathlib import Path; print(Path(input()).stem);")"
     if [ -z "$datasets_info_new" ]; then
