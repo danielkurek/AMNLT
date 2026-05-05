@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "AMNLT_replication"
+version = "2026.0.0"
+dependencies = [
+    # "gabcparser @ {root:uri}/GabcParser/", # cannot install from submodule since AMNLT specifies git
+    "AMNLT @ {root:uri}/AMNLT_original_models/",
+    "datasets",
+    "stringzilla",
+    "stringzillas-cpus",
+    "numpy",
+    "scikit-image"
+]
+
+classifiers = [
+    "Private :: Do Not Upload"
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+only-include = ["src"]
