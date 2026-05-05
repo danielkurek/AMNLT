@@ -40,7 +40,7 @@ def main(args):
 
     filter_indices = prepare_indices(duplicates)
 
-    with open("filtered_indices.json", "w", encoding="utf-8") as f:
+    with open(f"filtered_indices_{args.original_dataset_path.replace("/","_")}.json", "w", encoding="utf-8") as f:
         json.dump({split: sorted(list(indices)) for split,indices in filter_indices.items()}, f, ensure_ascii=False)
     
     keep_indices = {
@@ -58,7 +58,7 @@ def main(args):
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    save_path = output_dir / args.original_dataset_path.replace("/", "-")
+    save_path = output_dir / Path(args.original_dataset_path).stem
     if save_path.exists():
         delete = True
         if not args.delete_without_asking:
