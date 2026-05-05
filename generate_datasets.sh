@@ -139,6 +139,7 @@ while IFS= read -r LINE; do
         -t "$threads" \
         --delete_without_asking \
         --output_dir "$deduplicated_dataset_dir" \
+        --filtered_indices_output "$deduplication_dir/filtered_indices_$name.json"
         "$deduplication_dir/duplicates_$name.json" "$conversion_output_dir/$name"
 done <<EOF
 $datasets_info
