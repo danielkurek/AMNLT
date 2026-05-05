@@ -9,6 +9,7 @@ if __name__ == "__main__":
     parser.add_argument("-t", "--threads", type=int, default=1, help="Process within multiple threads")
     parser.add_argument("--output_dir", default="out/", type=str, help="Output directory for filtered dataset")
     parser.add_argument("--delete_without_asking", default=False, action="store_true", help="Disable prompt before deletion of output folder '[output_dir]/[dataset]'. It will DELETED WITHOUT ASKING.")
+    parser.add_argument("--filtered_indices_output", default=None, type=str, help="Output filename of json containing filtered out indices")
     parser.add_argument("duplicates_file", help="File containing duplicates (.json)")
     parser.add_argument("original_dataset_path", help="Original dataset name/path (huggingface dataset)")
 
@@ -40,8 +41,9 @@ def main(args):
 
     filter_indices = prepare_indices(duplicates)
 
-    with open(f"filtered_indices_{args.original_dataset_path.replace("/","_")}.json", "w", encoding="utf-8") as f:
-        json.dump({split: sorted(list(indices)) for split,indices in filter_indices.items()}, f, ensure_ascii=False)
+    if args.filtered_indices_output:
+        with open(args.filtered_indices_output, "w", encoding="utf-8") as f:
+            json.dump({split: sorted(list(indices)) for split,indices in filter_indices.items()}, f, ensure_ascii=False)
     
     keep_indices = {
         split: [i for i in range(len(dataset[split])) if i not in filter_indices[split]] for split in dataset.keys()
