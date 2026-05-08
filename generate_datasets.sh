@@ -63,7 +63,7 @@ echo "Converting datasets to common encoding..."
 conversion_output_dir="$output_dir/datasets/common_encoding"
 conversion_log_file="$output_dir/conversion_to_common.log"
 mkdir -p "$conversion_output_dir"
-echo "" > "$conversion_log_file"
+echo -n "" > "$conversion_log_file"
 
 while IFS= read -r LINE; do
     name="$(echo "$LINE" | cut -d';' -f1)"
@@ -112,14 +112,17 @@ echo "Deduplication of common-encoded datasets"
 
 deduplication_dir="$output_dir/deduplication_files"
 deduplicated_dataset_dir="$output_dir/datasets/common_encoding_deduplicated"
+deduplication_log_file="$output_dir/deduplication.log"
 similarity_threshold=3
 mkdir -p "$deduplication_dir"
 mkdir -p "$deduplicated_dataset_dir"
+echo -n "" > "$deduplication_log_file"
 
 while IFS= read -r LINE; do
     name="$(echo "$LINE" | cut -d';' -f1)"
 
     echo "Calculating similarity matrix for $name..."
+    echo ">>>>$name<<<<" >> "$deduplication_log_file"
 
     python3 deduplication/similarity_matrix.py \
         -t "$threads" \
@@ -140,7 +143,7 @@ while IFS= read -r LINE; do
         --delete_without_asking \
         --output_dir "$deduplicated_dataset_dir" \
         --filtered_indices_output "$deduplication_dir/filtered_indices_$name.json"
-        "$deduplication_dir/duplicates_$name.json" "$conversion_output_dir/$name"
+        "$deduplication_dir/duplicates_$name.json" "$conversion_output_dir/$name" >> "$deduplication_log_file"
 done <<EOF
 $datasets_info
 EOF
