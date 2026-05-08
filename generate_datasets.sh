@@ -76,6 +76,7 @@ while IFS= read -r LINE; do
     python3 -m gabcparser.utils.common_encoding \
         -t "$threads" \
         -o "$conversion_output_dir" \
+        --keep_original_transcript \
         --remove_failed_rows --remove_mislabeled_custos --delete_without_asking \
         "$encoding" "$hf_dataset" >> "$conversion_log_file"
 done <<EOF
