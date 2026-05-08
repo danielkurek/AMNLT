@@ -118,47 +118,59 @@ def image_duplicate_worker_init(dataset_path):
     global ds
     ds = load_dataset(dataset_path)
 
-def image_duplicate_process(item, split, threshold):
+def image_duplicate_process_pair(pair, threshold):
     global ds
-    index, duplicates = item
+    (split, index), (other_split, other_index) = pair
 
-    orig_img = ds[split]["image"][int(index)]
-    size = (orig_img.width // 4, orig_img.height // 4)
-    im1 = np.asarray(orig_img.convert('L').resize(size))
+    img1 = ds[split]["image"][index]
+    img2 = ds[other_split]["image"][other_index]
+    size = (max(img1.width, img2.width) // 4, max(img1.height, img2.height) // 4)
+    size = (max(1, size[0]), max(1, size[1]))
+    
+    img1_processed = np.asarray(img1.convert('L').resize(size))
+    img2_processed = np.asarray(img2.convert('L').resize(size))
 
-    for other_split in duplicates.keys():
-        i = 0
-        while i < len(duplicates[other_split]):
-            other_index = duplicates[other_split][i]
-            im2 = np.asarray(ds[other_split]["image"][int(other_index)].convert('L').resize(size))
-            score = ssim(im1, im2, data_range=255.0)
-            if score < threshold:
-                duplicates[other_split].pop(i)
-                continue # next item is at position i
-            i += 1
-    for other_split in list(duplicates.keys()):
-        if len(duplicates[other_split]) == 0:
-            del duplicates[other_split]
-    if len(duplicates) == 0:
-        return index, None
-    return index, duplicates
+    score = ssim(img1_processed, img2_processed, data_range=255.0)
+
+    return pair if score >= threshold else None
 
 def image_duplicate_filter(duplicates, dataset_path, threshold, threads):
-    pool = Pool(threads, initializer=image_duplicate_worker_init, initargs=(dataset_path,))
+    unique_pairs = set()
     for split in duplicates.keys():
-        process_fn = partial(image_duplicate_process, split=split, threshold=threshold)
-        delete_indices = []
-        for result in tqdm.tqdm(pool.imap_unordered(process_fn, duplicates[split].items()), total=len(duplicates[split])):
-            index, value = result
-            if value is None:
-                delete_indices.append(index)
-            else:
-                duplicates[split][index] = value
-        for index in delete_indices:
-            del duplicates[split][index]
+        for index in duplicates[split].keys():
+            for other_split in duplicates[split][index].keys():
+                for other_index in duplicates[split][index][other_split]:
+                    pair = sorted(((split, int(index)), (other_split, int(other_index))))
+                    unique_pairs.add(tuple(pair))
+    
+    # allow dataset to generate its data
+    load_dataset(dataset_path)
+
+    pool = Pool(threads, initializer=image_duplicate_worker_init, initargs=(dataset_path,))
+    process_fn = partial(image_duplicate_process_pair, threshold=threshold)
+    
+    duplicate_pairs = []
+    for result in tqdm.tqdm(pool.imap_unordered(process_fn, unique_pairs), total=len(unique_pairs)):
+        if result is not None:
+            duplicate_pairs.append(result)
+    
     pool.close()
     pool.join()
-    return duplicates
+
+    filtered_duplicates = {split: {} for split in duplicates.keys()}
+    for (split, index), (other_split, other_index) in duplicate_pairs:
+        if index not in filtered_duplicates[split]:
+            filtered_duplicates[split][index] = {}
+        if other_split not in filtered_duplicates[split][index]:
+            filtered_duplicates[split][index][other_split] = []
+        filtered_duplicates[split][index][other_split].append(other_index)
+
+        if other_index not in filtered_duplicates[other_split]:
+            filtered_duplicates[other_split][other_index] = {}
+        if split not in filtered_duplicates[other_split][other_index]:
+            filtered_duplicates[other_split][other_index][split] = []
+        filtered_duplicates[other_split][other_index][split].append(index)
+    return filtered_duplicates
 
 def main(args):
     with open(args.similarity_matrix + ".json", "r") as f:
@@ -180,6 +192,13 @@ def main(args):
         return
     if args.check_images:
         duplicates = image_duplicate_filter(duplicates, config["dataset"], args.image_threshold, args.threads)
+    
+    # sort indices, just for easier debugging
+    for split in duplicates.keys():
+        for index in duplicates[split].keys():
+            for other_split in duplicates[split][index].keys():
+                duplicates[split][index][other_split] = sorted(duplicates[split][index][other_split])
+                    
     with open(args.output, "w", encoding="utf-8") as f:
         json.dump(duplicates, f, ensure_ascii=False)
         
