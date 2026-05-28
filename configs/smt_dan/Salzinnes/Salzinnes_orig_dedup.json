@@ -1,0 +1,10 @@
+{
+    "data":{
+      "dataset_name": "out/datasets/deduplicated_original/Salzinnes_staffLevel",
+      "batch_size": 1,
+      "vocab_name": "Salzinnes",
+      "transcript_format": "new_gabc",
+      "num_workers": 2,
+      "reduce_ratio": 1.0
+    }
+}

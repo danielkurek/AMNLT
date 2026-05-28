@@ -1,0 +1,10 @@
+{
+    "data":{
+      "dataset_name": "out/datasets/deduplicated_original/Einsiedeln_staffLevel",
+      "batch_size": 1,
+      "vocab_name": "Einsiedeln",
+      "transcript_format": "new_gabc",
+      "num_workers": 2,
+      "reduce_ratio": 0.75
+    }
+}
