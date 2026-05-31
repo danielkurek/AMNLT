@@ -167,6 +167,7 @@ while IFS= read -r LINE; do
     python3 deduplication/filter_by_indices.py \
         -t "$threads" \
         --output_dir "$original_deduplicated_dir" \
+        --name_suffix ""\
         "$deduplicated_dataset_dir/$name" "$hf_dataset"
 done <<EOF
 $datasets_info
