@@ -1,6 +1,6 @@
 {
     "data":{
-      "dataset_name": "out/datasets/deduplicated_original/GregoSynth_staffLevel",
+      "dataset_name": "../../../datasets/deduplicated_original/GregoSynth_staffLevel",
       "batch_size": 1,
       "vocab_name": "GregoSynth",
       "transcript_format": "music_aware",
