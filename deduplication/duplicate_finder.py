@@ -124,8 +124,7 @@ def image_duplicate_process_pair(pair, threshold):
 
     img1 = ds[split]["image"][index]
     img2 = ds[other_split]["image"][other_index]
-    size = (max(img1.width, img2.width) // 4, max(img1.height, img2.height) // 4)
-    size = (max(1, size[0]), max(1, size[1]))
+    size = (max(img1.width, img2.width, 4) // 4, max(img1.height, img2.height, 4) // 4)
     
     img1_processed = np.asarray(img1.convert('L').resize(size))
     img2_processed = np.asarray(img2.convert('L').resize(size))
