@@ -80,7 +80,8 @@ def main(config_path, patience=5, threads=2):
                       check_val_every_n_epoch=5, 
                       logger=loggers, callbacks=[checkpointer, early_stopper],
                       precision="16-mixed",
-                      reload_dataloaders_every_n_epochs=1)
+                      reload_dataloaders_every_n_epochs=1,
+                      accumulate_grad_batches=8)
     
     trainer.fit(model_wrapper,datamodule=datamodule)
 
