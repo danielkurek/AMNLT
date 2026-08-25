@@ -1,0 +1,30 @@
+{
+    "name": "common_merged",
+    "vocab_name": "common",
+    "batch_size": 1,
+    "num_workers": 2,
+    "data": [
+        {
+            "dataset_name": "../../../datasets/common_encoding_deduplicated/GregoSynth_staffLevel",
+            "transcript_format": "music_aware",
+            "reduce_ratio": 0.5,
+            "use_for_validation": false,
+            "downsample": true
+        },
+        {
+            "dataset_name": "../../../datasets/common_encoding_deduplicated/Einsiedeln_staffLevel",
+            "transcript_format": "music_aware",
+            "reduce_ratio": 0.75
+        },
+        {
+            "dataset_name": "../../../datasets/common_encoding_deduplicated/Salzinnes_staffLevel",
+            "transcript_format": "music_aware",
+            "reduce_ratio": 1.0
+        },
+        {
+            "dataset_name": "../../../datasets/common_encoding_deduplicated/Solesmes_staffLevel",
+            "transcript_format": "music_aware",
+            "reduce_ratio": 1.0
+        }
+    ]
+}
