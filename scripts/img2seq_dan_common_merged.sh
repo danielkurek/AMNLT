@@ -21,7 +21,7 @@ mkdir -p "$experiment_dir" && cd "$experiment_dir"
 
 config_exp_name="$(jq .name -r "$base_dir/$config_path")"
 
-python "$base_dir/src/smt_dan/train_dan_common_grad_acc.py" --config_path "$base_dir/$config_path"
+PYTHONPATH="$base_dir" python -m src.smt_dan.train_dan_common_grad_acc --config_path "$base_dir/$config_path"
 
 while IFS= read -r LINE; do
     if [ -z "$LINE" ]; then

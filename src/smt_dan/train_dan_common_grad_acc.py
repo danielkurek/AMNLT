@@ -1,7 +1,7 @@
 import fire
 import json
 import torch
-from data_amnlt_merged import AMNLTDatasetMergedDownsampling
+from .data_amnlt_merged import AMNLTDatasetMergedDownsampling
 from AMNLT.scripts.smt_dan.dan_trainer import DAN_Trainer
 
 from ..ExperimentCommonConfig import experiment_config_from_dict

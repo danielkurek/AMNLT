@@ -88,7 +88,7 @@ class AMNLTDatasetMergedDownsampling(LightningDataModule):
             if dataset_config.downsample:
                 self.has_downsample_dataset = True
             else:
-                max_normal_dataset_train_size = max(max_normal_dataset_train_size, self.train_sets[-1])
+                max_normal_dataset_train_size = max(max_normal_dataset_train_size, len(self.train_sets[-1]))
         if self.has_downsample_dataset:
             assert config.downsample_size is not None or max_normal_dataset_train_size > 0, "Cannot infer the downsampling size for the datasets"
             downsample_size = config.downsample_size if config.downsample_size is not None else max_normal_dataset_train_size
