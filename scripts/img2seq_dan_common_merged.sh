@@ -31,10 +31,11 @@ while IFS= read -r LINE; do
     name="$(echo "$LINE" | cut -d';' -f1)"
     encoding="$(echo "$LINE" | cut -d';' -f2)"
     dataset_index="$(echo "$LINE" | cut -d';' -f3)"
+    dataset_name="$(jq ".data[$dataset_index].dataset_name" -r "$base_dir/$config_path")"
 
     PYTHONPATH="$base_dir" python -m src.smt_dan.test_dan_common --config_path "$base_dir/$config_path" --checkpoint_path "weights/$config_exp_name/common_merged_DAN.ckpt" --dataset_index "$dataset_index"
     mv predictions.txt "predictions_$name.txt"
-    python "$base_dir/AMNLT_original_models/AMNLT/scripts/compute_amnlt_metrics.py" --encoding "$encoding" "$datasets_base_dir/$name" "predictions_$name.txt" > "metrics_$name.txt"
+    python "$base_dir/AMNLT_original_models/AMNLT/scripts/compute_amnlt_metrics.py" --encoding "$encoding" "$dataset_name" "predictions_$name.txt" > "metrics_$name.txt"
 
 done <<EOF
 $separate_datasets_info
