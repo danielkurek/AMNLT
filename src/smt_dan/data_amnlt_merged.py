@@ -68,6 +68,44 @@ class DownsampleDataset:
     def get_gt(self):
         return self.dataset.get_gt()
 
+class AMNLTDatasetMerged(LightningDataModule):
+    def __init__(self, config: ExperimentCommonConfig):
+        super().__init__()
+
+        self.batch_size = config.batch_size
+        self.num_workers = config.num_workers
+        
+        self.train_sets = []
+        self.val_sets = []
+        self.test_sets = []
+
+        for dataset_config in config.data:
+            self.train_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "train", dataset_config.transcript_format, dataset_config.reduce_ratio, augment=True))
+            if dataset_config.use_for_validation:
+                self.val_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "validation", dataset_config.transcript_format, dataset_config.reduce_ratio))
+            self.test_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "test", dataset_config.transcript_format, dataset_config.reduce_ratio))
+
+        self.train_set = MergeDatasets(self.train_sets)
+        self.val_set = MergeDatasets(self.val_sets)
+        self.test_set = MergeDatasets(self.test_sets)
+        
+        gts = [x.get_gt() for x in self.train_sets] + [x.get_gt() for x in self.val_sets] + [x.get_gt() for x in self.test_sets]
+        w2i, i2w = check_and_retrieveVocabulary(gts, "vocab", config.vocab_name)
+        
+        self.train_set.set_dictionaries(w2i, i2w)
+        self.val_set.set_dictionaries(w2i, i2w)
+        self.test_set.set_dictionaries(w2i, i2w)
+
+    def train_dataloader(self):
+        self.train_sets[0].resample_indices()
+        return torch.utils.data.DataLoader(self.train_set, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True, collate_fn=batch_preparation_img2seq)
+    
+    def val_dataloader(self):
+        return torch.utils.data.DataLoader(self.val_set, batch_size=self.batch_size, num_workers=self.num_workers, collate_fn=batch_preparation_img2seq)
+    
+    def test_dataloader(self):
+        return torch.utils.data.DataLoader(self.test_set, batch_size=self.batch_size, num_workers=self.num_workers, collate_fn=batch_preparation_img2seq)
+
 class AMNLTDatasetMergedDownsampling(LightningDataModule):
     def __init__(self, config: ExperimentCommonConfig):
         super().__init__()
