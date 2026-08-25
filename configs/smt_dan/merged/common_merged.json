@@ -5,24 +5,24 @@
     "num_workers": 2,
     "data": [
         {
-            "dataset_name": "../../../datasets/deduplicated_original/GregoSynth_staffLevel",
+            "dataset_name": "../../../datasets/common_encoding/GregoSynth_staffLevel",
             "transcript_format": "music_aware",
             "reduce_ratio": 0.5,
             "use_for_validation": false,
             "downsample": true
         },
         {
-            "dataset_name": "../../../datasets/deduplicated_original/Einsiedeln_staffLevel",
+            "dataset_name": "../../../datasets/common_encoding/Einsiedeln_staffLevel",
             "transcript_format": "music_aware",
             "reduce_ratio": 0.75
         },
         {
-            "dataset_name": "../../../datasets/deduplicated_original/Salzinnes_staffLevel",
+            "dataset_name": "../../../datasets/common_encoding/Salzinnes_staffLevel",
             "transcript_format": "music_aware",
             "reduce_ratio": 1.0
         },
         {
-            "dataset_name": "../../../datasets/deduplicated_original/Solesmes_staffLevel",
+            "dataset_name": "../../../datasets/common_encoding/Solesmes_staffLevel",
             "transcript_format": "music_aware",
             "reduce_ratio": 1.0
         }
