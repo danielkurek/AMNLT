@@ -24,7 +24,7 @@ torch.backends.cudnn.deterministic = True
 
 torch.set_float32_matmul_precision('high')
 
-def main(config_path, patience=5, threads=2):
+def main(config_path, patience=5, threads=2, gradient_accumulation=1):
     if threads is not None and threads > 0:
         if torch.get_num_threads() != threads:
             torch.set_num_threads(threads)
@@ -81,7 +81,7 @@ def main(config_path, patience=5, threads=2):
                       logger=loggers, callbacks=[checkpointer, early_stopper],
                       precision="16-mixed",
                       reload_dataloaders_every_n_epochs=1,
-                      accumulate_grad_batches=8)
+                      accumulate_grad_batches=gradient_accumulation)
     
     trainer.fit(model_wrapper,datamodule=datamodule)
 
