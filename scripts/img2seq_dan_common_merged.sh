@@ -2,7 +2,7 @@
 
 set -eu
 
-config_path="configs/smt_dan/common/common.json"
+config_path="configs/smt_dan/merged/common_merged.json"
 # Datasets for experiments - format: dataset_name;encoding;dataset_index
 # path is relative to the dir where the script will be executed (root dir of the repository)
 separate_datasets_info="Solesmes_staffLevel;common-gabc;3
