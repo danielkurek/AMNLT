@@ -33,6 +33,12 @@ def main(config_path, checkpoint_path, vocab_name, patience=5, threads=2, gradie
     dataset_name = Path(config_path).stem + "_finetune"
 
     model = DAN_Trainer.load_from_checkpoint(checkpoint_path, weights_only=False)
+
+    # Set lower learning rate
+    def configure_optimizers_new(self):
+        return torch.optim.Adam(list(self.model.encoder.parameters()) + list(self.model.decoder.parameters()), lr=1e-5, amsgrad=False)
+    import types
+    model.configure_optimizers = types.MethodType(configure_optimizers_new, model)
     
     experiment_name = f"DAN_{dataset_name}_finetune"
     loggers = [
@@ -62,7 +68,7 @@ def main(config_path, checkpoint_path, vocab_name, patience=5, threads=2, gradie
         )
     
     trainer = Trainer(max_epochs=10000, 
-                      check_val_every_n_epoch=5, 
+                      check_val_every_n_epoch=1, 
                       logger=loggers, callbacks=[checkpointer, early_stopper],
                       precision="16-mixed",
                       reload_dataloaders_every_n_epochs=1,
