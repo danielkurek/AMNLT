@@ -1,0 +1,10 @@
+{
+    "data":{
+      "dataset_name": "../../../datasets/common_encoding/Einsiedeln_staffLevel",
+      "batch_size": 1,
+      "vocab_name": "Einsiedeln_common",
+      "transcript_format": "music_aware",
+      "num_workers": 2,
+      "reduce_ratio": 0.75
+    }
+}
