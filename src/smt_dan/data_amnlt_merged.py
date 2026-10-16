@@ -80,10 +80,10 @@ class AMNLTDatasetMerged(LightningDataModule):
         self.test_sets = []
 
         for dataset_config in config.data:
-            self.train_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "train", dataset_config.transcript_format, dataset_config.reduce_ratio, augment=True))
+            self.train_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "train", dataset_config.transcript_format, dataset_config.resize, augment=True))
             if dataset_config.use_for_validation:
-                self.val_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "validation", dataset_config.transcript_format, dataset_config.reduce_ratio))
-            self.test_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "test", dataset_config.transcript_format, dataset_config.reduce_ratio))
+                self.val_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "validation", dataset_config.transcript_format, dataset_config.resize))
+            self.test_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "test", dataset_config.transcript_format, dataset_config.resize))
 
         self.train_set = MergeDatasets(self.train_sets)
         self.val_set = MergeDatasets(self.val_sets)
@@ -119,10 +119,10 @@ class AMNLTDatasetMergedDownsampling(LightningDataModule):
         self.has_downsample_dataset = False
         max_normal_dataset_train_size = -1
         for dataset_config in config.data:
-            self.train_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "train", dataset_config.transcript_format, dataset_config.reduce_ratio, augment=True))
+            self.train_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "train", dataset_config.transcript_format, dataset_config.resize, augment=True))
             if dataset_config.use_for_validation:
-                self.val_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "validation", dataset_config.transcript_format, dataset_config.reduce_ratio))
-            self.test_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "test", dataset_config.transcript_format, dataset_config.reduce_ratio))
+                self.val_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "validation", dataset_config.transcript_format, dataset_config.resize))
+            self.test_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "test", dataset_config.transcript_format, dataset_config.resize))
             if dataset_config.downsample:
                 self.has_downsample_dataset = True
             else:

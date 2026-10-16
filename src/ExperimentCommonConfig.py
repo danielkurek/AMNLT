@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Any, TypeVar, Type, cast
+from AMNLT.configs.smt_dan_config.ExperimentConfig import ResizeType
 
 
 T = TypeVar("T")
@@ -38,11 +39,38 @@ def to_class(c: Type[T], x: Any) -> dict:
     assert isinstance(x, c)
     return cast(Any, x).to_dict()
 
+def from_resize(x: Any) -> ResizeType:
+    # resize ratio
+    if isinstance(x, (float, int)) and not isinstance(x, bool):
+        assert x > 0, "Resize ratio must be > 0"
+        return float(x)
+    # [height, width] parsing, either can be null
+    if isinstance(x, (list, tuple)):
+        assert len(x) == 2, "Resize must have two elements (height, width)"
+        def _check_dim(val):
+            assert val is None or (isinstance(val, int) and not isinstance(val, bool) and val > 0), \
+                f"Resize dimension must be a positive int or null, got {x!r}"
+            return val
+        height, width = _check_dim(x[0]), _check_dim(x[1])
+        assert height is not None or width is not None, \
+            "Resize must have at least one non-null dimension"
+        return [height, width]
+    # null = no resizing
+    assert x is None, f"Resize must be None, a int/float, or (height, width), got {x!r}"
+    return None
+
+def to_resize(x: ResizeType):
+    # same as from_resize but do not convert a possible int to float
+    if isinstance(x, (float, int)):
+        return x
+    else:
+        return from_resize(x)
+
 
 @dataclass
 class Data:
     dataset_name: str
-    reduce_ratio: float
+    resize: ResizeType
     transcript_format: str
     use_for_validation: bool
     downsample: bool
@@ -51,16 +79,18 @@ class Data:
     def from_dict(obj: Any) -> 'Data':
         assert isinstance(obj, dict)
         dataset_name = from_str(obj.get("dataset_name"))
-        reduce_ratio = from_float(obj.get("reduce_ratio"))
+        assert "resize" in obj or "reduce_ratio" in obj, \
+            'Config field "resize" is required (use null for no resize, or legacy "reduce_ratio")'
+        resize = from_resize(obj.get("resize", obj.get("reduce_ratio")))
         transcript_format = from_str(obj.get("transcript_format"))
         use_for_validation = from_bool(obj.get("use_for_validation", True))
         downsample = from_bool(obj.get("downsample", False))
-        return Data(dataset_name, reduce_ratio, transcript_format, use_for_validation, downsample)
+        return Data(dataset_name, resize, transcript_format, use_for_validation, downsample)
 
     def to_dict(self) -> dict:
         result: dict = {}
         result["dataset_name"] = from_str(self.dataset_name)
-        result["reduce_ratio"] = to_float(self.reduce_ratio)
+        result["resize"] = to_resize(self.resize)
         result["transcript_format"] = from_str(self.transcript_format)
         result["use_for_validation"] = from_bool(self.use_for_validation)
         result["downsample"] = from_bool(self.downsample)
