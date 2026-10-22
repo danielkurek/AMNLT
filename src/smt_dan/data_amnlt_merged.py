@@ -147,7 +147,9 @@ class AMNLTDatasetMergedDownsampling(LightningDataModule):
         self.test_set.set_dictionaries(w2i, i2w)
 
     def train_dataloader(self):
-        self.train_sets[0].resample_indices()
+        for i in range(len(self.train_sets)):
+            if isinstance(self.train_sets[i], DownsampleDataset):
+                self.train_sets[i].resample_indices()
         return torch.utils.data.DataLoader(self.train_set, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True, collate_fn=batch_preparation_img2seq)
     
     def val_dataloader(self):
