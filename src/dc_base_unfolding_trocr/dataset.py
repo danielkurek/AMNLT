@@ -15,8 +15,8 @@ class MergedDatasets(ConcatDataset):
     def __init__(self, datasets):
         super().__init__(datasets)
     
-    def get_max_hw(self):
-        hw_list = [x.get_max_hw() for x in self.datasets]
+    def get_mx_hw(self):
+        hw_list = [x.get_mx_hw() for x in self.datasets]
         return max([x[0] for x in hw_list]), max([x[1] for x in hw_list])
 
 class CTCDatasetMerged(LightningDataModule):

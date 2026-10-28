@@ -64,9 +64,9 @@ def train(
     datamodule = CTCDatasetMerged(config, model_name, allow_downsample=allow_downsample)
     
     if model_name == "cnnt2d":
-        train_max_h, train_max_w = datamodule.train_set.get_max_hw()
-        val_max_h, val_max_w = datamodule.val_set.get_max_hw()
-        test_max_h, test_max_w = datamodule.test_set.get_max_hw()
+        train_max_h, train_max_w = datamodule.train_set.get_mx_hw()
+        val_max_h, val_max_w = datamodule.val_set.get_mx_hw()
+        test_max_h, test_max_w = datamodule.test_set.get_mx_hw()
 
         # Calcular los máximos globales de altura y anchura
         max_h = max(train_max_h, val_max_h, test_max_h)
