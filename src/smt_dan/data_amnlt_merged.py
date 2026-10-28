@@ -1,25 +1,16 @@
 import torch
 import numpy as np
+from torch.utils.data import ConcatDataset, Dataset
 from lightning import LightningDataModule
 
 from AMNLT.utils.smt_dan_utils.utils import check_and_retrieveVocabulary
 from AMNLT.scripts.smt_dan.data_amnlt import AMNLTSingleSystem, batch_preparation_img2seq
 from ..ExperimentCommonConfig import ExperimentCommonConfig
+from ..utils.concat_cycle_sampler import ConcatDatasetCycleSampler
 
-class MergeDatasets:
-    def __init__(self, datasets, modifiers: None|list[int]=None):
-        self.datasets = datasets
-        self.modifiers = [int(x) for x in modifiers] if modifiers is not None else [1] * len(datasets)
-    
-    def __len__(self):
-        return sum(len(x[0]) * x[1] for x in zip(self.datasets, self.modifiers))
-    
-    def __getitem__(self, index):
-        for dataset,modifier in zip(self.datasets, self.modifiers):
-            if index < len(dataset)*modifier:
-                return dataset[index%len(dataset)]
-            index -= len(dataset)*modifier
-        raise IndexError("Index is too large or there is a mistake")
+class MergedDatasets(ConcatDataset):
+    def __init__(self, datasets):
+        super().__init__(datasets)
     
     def set_dictionaries(self, w2i, i2w):
         self.w2i = w2i
@@ -33,40 +24,6 @@ class MergeDatasets:
     
     def get_max_seqlen(self):
         return max([x.get_max_seqlen() for x in self.datasets])
-
-class DownsampleDataset:
-    def __init__(self, dataset, length):
-        self.dataset = dataset
-        if length > len(self.dataset):
-            raise ValueError("Downsampled dataset length cannot be larger than the dataset length")
-        self.length = length
-        self.resample_indices()
-        
-    
-    def __len__(self):
-        return self.length
-    
-    def resample_indices(self):
-        self.indices = np.random.randint(0, len(self.dataset), size=self.length)
-    
-    def __getitem__(self, index):
-        if index > len(self.indices):
-            raise IndexError()
-        return self.dataset[self.indices[index]]
-    
-    def set_dictionaries(self, w2i, i2w):
-        self.w2i = w2i
-        self.i2w = i2w
-        self.dataset.set_dictionaries(w2i, i2w)
-    
-    def get_max_hw(self):
-        return self.dataset.get_max_hw()
-    
-    def get_max_seqlen(self):
-        return self.dataset.get_max_seqlen()
-    
-    def get_gt(self):
-        return self.dataset.get_gt()
 
 class AMNLTDatasetMerged(LightningDataModule):
     def __init__(self, config: ExperimentCommonConfig):
@@ -85,9 +42,9 @@ class AMNLTDatasetMerged(LightningDataModule):
                 self.val_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "validation", dataset_config.transcript_format, dataset_config.resize))
             self.test_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "test", dataset_config.transcript_format, dataset_config.resize))
 
-        self.train_set = MergeDatasets(self.train_sets)
-        self.val_set = MergeDatasets(self.val_sets)
-        self.test_set = MergeDatasets(self.test_sets)
+        self.train_set = MergedDatasets(self.train_sets)
+        self.val_set = MergedDatasets(self.val_sets)
+        self.test_set = MergedDatasets(self.test_sets)
         
         gts = [x.get_gt() for x in self.train_sets] + [x.get_gt() for x in self.val_sets] + [x.get_gt() for x in self.test_sets]
         w2i, i2w = check_and_retrieveVocabulary(gts, "vocab", config.vocab_name)
@@ -97,7 +54,6 @@ class AMNLTDatasetMerged(LightningDataModule):
         self.test_set.set_dictionaries(w2i, i2w)
 
     def train_dataloader(self):
-        self.train_sets[0].resample_indices()
         return torch.utils.data.DataLoader(self.train_set, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True, collate_fn=batch_preparation_img2seq)
     
     def val_dataloader(self):
@@ -107,15 +63,20 @@ class AMNLTDatasetMerged(LightningDataModule):
         return torch.utils.data.DataLoader(self.test_set, batch_size=self.batch_size, num_workers=self.num_workers, collate_fn=batch_preparation_img2seq)
 
 class AMNLTDatasetMergedDownsampling(LightningDataModule):
-    def __init__(self, config: ExperimentCommonConfig):
+    def __init__(self, config: ExperimentCommonConfig, seed: int|None = None):
         super().__init__()
 
+        self.seed = seed
+        self.train_generator = None
+        if self.seed is not None:
+            self.train_generator = torch.Generator().manual_seed(self.seed)
         self.batch_size = config.batch_size
         self.num_workers = config.num_workers
         
         self.train_sets = []
         self.val_sets = []
         self.test_sets = []
+        self.samples_per_batch = {}
         self.has_downsample_dataset = False
         max_normal_dataset_train_size = -1
         for dataset_config in config.data:
@@ -134,10 +95,10 @@ class AMNLTDatasetMergedDownsampling(LightningDataModule):
                 if not dataset_config.downsample:
                     continue
                 assert self.train_sets[i].name == dataset_config.dataset_name
-                self.train_sets[i] = DownsampleDataset(self.train_sets[i], downsample_size)
-        self.train_set = MergeDatasets(self.train_sets)
-        self.val_set = MergeDatasets(self.val_sets)
-        self.test_set = MergeDatasets(self.test_sets)
+                self.samples_per_batch[i] = downsample_size
+        self.train_set = MergedDatasets(self.train_sets)
+        self.val_set = MergedDatasets(self.val_sets)
+        self.test_set = MergedDatasets(self.test_sets)
         
         gts = [x.get_gt() for x in self.train_sets] + [x.get_gt() for x in self.val_sets] + [x.get_gt() for x in self.test_sets]
         w2i, i2w = check_and_retrieveVocabulary(gts, "vocab", config.vocab_name)
@@ -147,12 +108,11 @@ class AMNLTDatasetMergedDownsampling(LightningDataModule):
         self.test_set.set_dictionaries(w2i, i2w)
 
     def train_dataloader(self):
-        for i in range(len(self.train_sets)):
-            if isinstance(self.train_sets[i], DownsampleDataset):
-                self.train_sets[i].resample_indices()
-        return torch.utils.data.DataLoader(self.train_set, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True, collate_fn=batch_preparation_img2seq)
+        sampler = ConcatDatasetCycleSampler(self.train_set, self.samples_per_batch, generator=self.train_generator, pad_last=True)
+        return torch.utils.data.DataLoader(self.train_set, batch_size=self.batch_size, num_workers=self.num_workers, sampler=sampler, collate_fn=batch_preparation_img2seq)
     
     def val_dataloader(self):
+        # TODO: weight each dataset according to its size
         return torch.utils.data.DataLoader(self.val_set, batch_size=self.batch_size, num_workers=self.num_workers, collate_fn=batch_preparation_img2seq)
     
     def test_dataloader(self):

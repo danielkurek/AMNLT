@@ -1,10 +1,10 @@
 import fire
 import json
 import torch
-from .data_amnlt_merged import AMNLTDatasetMergedDownsampling
+from src.smt_dan.data_amnlt_merged import AMNLTDatasetMergedDownsampling
 from AMNLT.scripts.smt_dan.dan_trainer import DAN_Trainer
 
-from ..ExperimentCommonConfig import experiment_config_from_dict
+from src.ExperimentCommonConfig import experiment_config_from_dict
 from lightning.pytorch import Trainer
 from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger, TensorBoardLogger
@@ -24,7 +24,7 @@ torch.backends.cudnn.deterministic = True
 
 torch.set_float32_matmul_precision('high')
 
-def main(config_path, patience=5, threads=2, gradient_accumulation=1):
+def main(config_path, patience=5, threads=2, gradient_accumulation=1, seed=42):
     if threads is not None and threads > 0:
         if torch.get_num_threads() != threads:
             torch.set_num_threads(threads)
@@ -34,12 +34,12 @@ def main(config_path, patience=5, threads=2, gradient_accumulation=1):
     with open(config_path, "r") as f:
         config = experiment_config_from_dict(json.load(f))
     
-    datamodule = AMNLTDatasetMergedDownsampling(config)
+    datamodule = AMNLTDatasetMergedDownsampling(config, seed=42)
 
     # TODO: optimize performance
-    # max_height, max_width = datamodule.train_set.get_max_hw()
+    max_height, max_width = datamodule.train_set.get_max_hw()
     max_len = datamodule.train_set.get_max_seqlen()
-    max_height, max_width = 955, 3056
+    # max_height, max_width = 955, 3056
     # max_len = 350
 
     print(f"{max_height=} {max_width=} {max_len=}")
@@ -80,7 +80,6 @@ def main(config_path, patience=5, threads=2, gradient_accumulation=1):
                       check_val_every_n_epoch=5, 
                       logger=loggers, callbacks=[checkpointer, early_stopper],
                       precision="16-mixed",
-                      reload_dataloaders_every_n_epochs=1,
                       accumulate_grad_batches=gradient_accumulation)
     
     trainer.fit(model_wrapper,datamodule=datamodule)
