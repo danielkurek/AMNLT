@@ -102,7 +102,7 @@ class CTCDatasetMerged(LightningDataModule):
             return torch.utils.data.DataLoader(self.train_set, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True, collate_fn=ctc_batch_preparation)
     
     def val_dataloader(self):
-        return torch.utils.data.DataLoader(self.val_set, 1, num_workers=self.num_workers, collate_fn=ctc_batch_preparation)
+        return torch.utils.data.DataLoader(self.val_set, 1, num_workers=self.num_workers)
     
     def test_dataloader(self):
-        return torch.utils.data.DataLoader(self.test_set, 1, num_workers=self.num_workers, collate_fn=ctc_batch_preparation)
+        return torch.utils.data.DataLoader(self.test_set, 1, num_workers=self.num_workers)
