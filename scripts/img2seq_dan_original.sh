@@ -4,10 +4,10 @@ set -eu
 
 # Datasets for experiments - format: dataset_name;encoding;config_path
 # path is relative to the dir where the script will be executed (root dir of the repository)
-datasets_info="Solesmes_staffLevel;s-gabc;configs/smt_dan/Solesmes/Solesmes_orig_dedup.json
-Einsiedeln_staffLevel;mei-gabc;configs/smt_dan/Einsiedeln/Einsiedeln_orig_dedup.json
-Salzinnes_staffLevel;mei-gabc;configs/smt_dan/Salzinnes/Salzinnes_orig_dedup.json
-GregoSynth_staffLevel;gabc;configs/smt_dan/GregoSynth/GregoSynth_orig_dedup.json"
+datasets_info="Solesmes_staffLevel;s-gabc;configs/Solesmes/Solesmes_orig_dedup.json
+Einsiedeln_staffLevel;mei-gabc;configs/Einsiedeln/Einsiedeln_orig_dedup.json
+Salzinnes_staffLevel;mei-gabc;configs/Salzinnes/Salzinnes_orig_dedup.json
+GregoSynth_staffLevel;gabc;configs/GregoSynth/GregoSynth_orig_dedup.json"
 
 base_dir="$( pwd )"
 output_base_dir="$base_dir/out/training"
