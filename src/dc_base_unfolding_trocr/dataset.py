@@ -35,12 +35,16 @@ class CTCDatasetMerged(LightningDataModule):
         self.has_downsample_dataset = False
         max_normal_dataset_train_size = -1
 
+        self.max_fixed_height = None
+
         for dataset_config in config.data:
             img_fixed_height = None
             if isinstance(dataset_config.resize, (list,tuple)) \
                 and len(dataset_config.resize) == 2 \
                 and dataset_config.resize[1] is None:
                 img_fixed_height = dataset_config.resize[0]
+                assert isinstance(img_fixed_height, int) and img_fixed_height > 0
+                self.max_fixed_height = img_fixed_height if self.max_fixed_height is None else max(self.max_fixed_height, img_fixed_height)
             elif dataset_config.resize is not None:
                 raise ValueError("Resize can be either None (null) or have fixed height, other types are not supported")
 

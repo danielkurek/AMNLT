@@ -64,6 +64,7 @@ def train(
     datamodule = CTCDatasetMerged(config, model_name, allow_downsample=allow_downsample)
     
     if model_name == "cnnt2d":
+        # TODO: speed up
         train_max_h, train_max_w = datamodule.train_set.get_mx_hw()
         val_max_h, val_max_w = datamodule.val_set.get_mx_hw()
         test_max_h, test_max_w = datamodule.test_set.get_mx_hw()
@@ -84,12 +85,12 @@ def train(
         if(model_name == "crnn"):
             model = CTCTrainedCRNN(
                 w2i=datamodule.w2i, i2w=datamodule.i2w, ctc=ctc, use_augmentations=use_augmentations, ds_name=config.name,
-                img_height=max_h
+                img_height=datamodule.max_fixed_height
             )
         elif(model_name == "fcn" or model_name == "crnnunfolding" or model_name == "cnnt2d" or model_name == "van"):
             model = LightningE2EModelUnfolding(
                 w2i=datamodule.w2i, i2w=datamodule.i2w, model=model_name, use_augmentations=use_augmentations, mh=max_h, mw=max_w,
-                img_height=max_h
+                img_height=datamodule.max_fixed_height
             )
         elif(model_name == "ctc_van"):
             model = CTCTrainedVAN(
