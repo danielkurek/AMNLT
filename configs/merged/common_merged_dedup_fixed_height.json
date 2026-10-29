@@ -1,5 +1,5 @@
 {
-    "name": "common_merged",
+    "name": "common_merged_fixed_height",
     "vocab_name": "common",
     "batch_size": 1,
     "num_workers": 2,
