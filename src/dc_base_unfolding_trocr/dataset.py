@@ -80,6 +80,7 @@ class CTCDatasetMerged(LightningDataModule):
 
         # save vocab
         w2i_path = Path("data") / config.name / f"w2i_{config.vocab_name}.json"
+        w2i_path.mkdir(parents=True, exist_ok=True)
         with open(w2i_path, "w") as file:
             json.dump(self.w2i, file)
 
