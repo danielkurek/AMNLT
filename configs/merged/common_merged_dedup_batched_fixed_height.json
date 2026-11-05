@@ -3,6 +3,7 @@
     "vocab_name": "common",
     "batch_size": 16,
     "num_workers": 2,
+    "img_max_width": 3600,
     "data": [
         {
             "dataset_name": "../../../datasets/common_encoding_deduplicated/GregoSynth_staffLevel",
