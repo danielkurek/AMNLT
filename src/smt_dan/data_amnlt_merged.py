@@ -31,16 +31,17 @@ class AMNLTDatasetMerged(LightningDataModule):
 
         self.batch_size = config.batch_size
         self.num_workers = config.num_workers
+        self.img_max_width = config.img_max_width
         
         self.train_sets = []
         self.val_sets = []
         self.test_sets = []
 
         for dataset_config in config.data:
-            self.train_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "train", dataset_config.transcript_format, dataset_config.resize, augment=True))
+            self.train_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "train", dataset_config.transcript_format, dataset_config.resize, self.img_max_width, augment=True))
             if dataset_config.use_for_validation:
-                self.val_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "validation", dataset_config.transcript_format, dataset_config.resize))
-            self.test_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "test", dataset_config.transcript_format, dataset_config.resize))
+                self.val_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "validation", dataset_config.transcript_format, dataset_config.resize, self.img_max_width))
+            self.test_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "test", dataset_config.transcript_format, dataset_config.resize, self.img_max_width))
 
         self.train_set = MergedDatasets(self.train_sets)
         self.val_set = MergedDatasets(self.val_sets)
@@ -72,6 +73,7 @@ class AMNLTDatasetMergedDownsampling(LightningDataModule):
             self.train_generator = torch.Generator().manual_seed(self.seed)
         self.batch_size = config.batch_size
         self.num_workers = config.num_workers
+        self.img_max_width = config.img_max_width
         
         self.train_sets = []
         self.val_sets = []
@@ -80,10 +82,10 @@ class AMNLTDatasetMergedDownsampling(LightningDataModule):
         self.has_downsample_dataset = False
         max_normal_dataset_train_size = -1
         for dataset_config in config.data:
-            self.train_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "train", dataset_config.transcript_format, dataset_config.resize, augment=True))
+            self.train_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "train", dataset_config.transcript_format, dataset_config.resize, self.img_max_width, augment=True))
             if dataset_config.use_for_validation:
-                self.val_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "validation", dataset_config.transcript_format, dataset_config.resize))
-            self.test_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "test", dataset_config.transcript_format, dataset_config.resize))
+                self.val_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "validation", dataset_config.transcript_format, dataset_config.resize, self.img_max_width))
+            self.test_sets.append(AMNLTSingleSystem(dataset_config.dataset_name, "test", dataset_config.transcript_format, dataset_config.resize, self.img_max_width))
             if dataset_config.downsample:
                 self.has_downsample_dataset = True
             else:

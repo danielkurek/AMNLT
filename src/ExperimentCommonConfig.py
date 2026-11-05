@@ -15,10 +15,8 @@ def from_int(x: Any) -> int:
     assert isinstance(x, int) and not isinstance(x, bool)
     return x
 
-def from_optional_int(x: Any) -> int | None:
-    if isinstance(x, str) and len(x) == 0:
-        return None
-    assert isinstance(x, int) or x is None
+def from_optional_int(x: Any) -> int|None:
+    assert x is None or (isinstance(x, int) and not isinstance(x, bool))
     return x
 
 def from_float(x: Any) -> float:
@@ -104,6 +102,7 @@ class ExperimentCommonConfig:
     batch_size: int
     num_workers: int
     downsample_size: None | int
+    img_max_width: int | None
     data: list[Data]
 
     @staticmethod
@@ -114,8 +113,9 @@ class ExperimentCommonConfig:
         batch_size = from_int(obj.get("batch_size"))
         num_workers = from_int(obj.get("num_workers"))
         downsample_size = obj.get("downsample_size")
+        img_max_width = from_optional_int(obj.get("img_max_width"))
         data = [Data.from_dict(data_dict) for data_dict in obj.get("data")]
-        return ExperimentCommonConfig(name, vocab_name, batch_size, num_workers, downsample_size, data)
+        return ExperimentCommonConfig(name, vocab_name, batch_size, num_workers, downsample_size, img_max_width, data)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -124,6 +124,7 @@ class ExperimentCommonConfig:
         result["batch_size"] = from_int(self.batch_size)
         result["num_workers"] = from_int(self.num_workers)
         result["downsample_size"] = self.downsample_size
+        result["img_max_width"] = from_optional_int(self.img_max_width)
         result["data"] = [to_class(Data, d) for d in self.data]
         return result
 

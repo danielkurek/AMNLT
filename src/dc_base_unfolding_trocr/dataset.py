@@ -25,6 +25,7 @@ class CTCDatasetMerged(LightningDataModule):
 
         self.batch_size = config.batch_size
         self.num_workers = config.num_workers
+        self.img_max_width = config.img_max_width
         
         self.train_sets = []
         self.val_sets = []
@@ -48,10 +49,10 @@ class CTCDatasetMerged(LightningDataModule):
             elif dataset_config.resize is not None:
                 raise ValueError("Resize can be either None (null) or have fixed height, other types are not supported")
 
-            self.train_sets.append(CTCDataset(dataset_config.dataset_name, "train", model_name, img_fixed_height=img_fixed_height, encoding_type=dataset_config.transcript_format))
+            self.train_sets.append(CTCDataset(dataset_config.dataset_name, "train", model_name, img_fixed_height=img_fixed_height, img_max_width=self.img_max_width, encoding_type=dataset_config.transcript_format))
             if dataset_config.use_for_validation:
-                self.val_sets.append(CTCDataset(dataset_config.dataset_name, "validation", model_name, train=False, img_fixed_height=img_fixed_height, encoding_type=dataset_config.transcript_format))
-            self.test_sets.append(CTCDataset(dataset_config.dataset_name, "test", model_name, train=False, img_fixed_height=img_fixed_height, encoding_type=dataset_config.transcript_format))
+                self.val_sets.append(CTCDataset(dataset_config.dataset_name, "validation", model_name, train=False, img_fixed_height=img_fixed_height, img_max_width=self.img_max_width, encoding_type=dataset_config.transcript_format))
+            self.test_sets.append(CTCDataset(dataset_config.dataset_name, "test", model_name, train=False, img_fixed_height=img_fixed_height, img_max_width=self.img_max_width, encoding_type=dataset_config.transcript_format))
             
             if allow_downsample and dataset_config.downsample:
                 self.has_downsample_dataset = True
