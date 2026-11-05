@@ -119,7 +119,12 @@ class ExperimentCommonConfig:
 
     def to_dict(self) -> dict:
         result: dict = {}
-        result["data"] = to_class(Data, self.data)
+        result["name"] = from_str(self.name)
+        result["vocab_name"] = from_str(self.vocab_name)
+        result["batch_size"] = from_int(self.batch_size)
+        result["num_workers"] = from_int(self.num_workers)
+        result["downsample_size"] = self.downsample_size
+        result["data"] = [to_class(Data, d) for d in self.data]
         return result
 
 
