@@ -8,24 +8,24 @@
         {
             "dataset_name": "../../../datasets/common_encoding_deduplicated/GregoSynth_staffLevel",
             "transcript_format": "music_aware",
-            "resize": [300, null],
+            "resize": [256, null],
             "use_for_validation": false,
             "downsample": true
         },
         {
             "dataset_name": "../../../datasets/common_encoding_deduplicated/Einsiedeln_staffLevel",
             "transcript_format": "music_aware",
-            "resize": [300, null]
+            "resize": [256, null]
         },
         {
             "dataset_name": "../../../datasets/common_encoding_deduplicated/Salzinnes_staffLevel",
             "transcript_format": "music_aware",
-            "resize": [300, null]
+            "resize": [256, null]
         },
         {
             "dataset_name": "../../../datasets/common_encoding_deduplicated/Solesmes_staffLevel",
             "transcript_format": "music_aware",
-            "resize": [300, null]
+            "resize": [256, null]
         }
     ]
 }
