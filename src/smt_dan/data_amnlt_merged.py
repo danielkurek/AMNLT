@@ -110,7 +110,7 @@ class AMNLTDatasetMergedDownsampling(LightningDataModule):
         self.test_set.set_dictionaries(w2i, i2w)
 
     def train_dataloader(self):
-        sampler = ConcatDatasetCycleSampler(self.train_set, self.samples_per_batch, generator=self.train_generator, pad_last=True)
+        sampler = ConcatDatasetCycleSampler(self.train_set, self.samples_per_batch, generator=self.train_generator)
         return torch.utils.data.DataLoader(self.train_set, batch_size=self.batch_size, num_workers=self.num_workers, sampler=sampler, collate_fn=batch_preparation_img2seq)
     
     def val_dataloader(self):
