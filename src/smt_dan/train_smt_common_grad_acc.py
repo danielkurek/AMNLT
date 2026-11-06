@@ -34,7 +34,7 @@ def main(config_path, patience=5, threads=2, gradient_accumulation=1, seed=42):
     with open(config_path, "r") as f:
         config = experiment_config_from_dict(json.load(f))
     
-    datamodule = AMNLTDatasetMergedDownsampling(config, seed=42)
+    datamodule = AMNLTDatasetMergedDownsampling(config, seed=seed)
 
     max_height, max_width = datamodule.train_set.get_max_hw()
     max_len = datamodule.train_set.get_max_seqlen()

@@ -38,7 +38,8 @@ def train(
     fine_tune=False,
     pretrain_model_path=None,
     ctc="greedy",
-    threads=2
+    threads=2,
+    seed = 42
 ):
     gc.collect()
     torch.cuda.empty_cache()
@@ -61,7 +62,7 @@ def train(
         config = experiment_config_from_dict(json.load(f))
 
     # Get datasets
-    datamodule = CTCDatasetMerged(config, model_name, allow_downsample=allow_downsample)
+    datamodule = CTCDatasetMerged(config, model_name, allow_downsample=allow_downsample, seed=seed)
     
     if model_name == "cnnt2d":
         # TODO: speed up

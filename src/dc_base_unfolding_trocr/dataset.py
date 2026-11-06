@@ -20,12 +20,17 @@ class MergedDatasets(ConcatDataset):
         return max([x[0] for x in hw_list]), max([x[1] for x in hw_list])
 
 class CTCDatasetMerged(LightningDataModule):
-    def __init__(self, config: ExperimentCommonConfig, model_name, allow_downsample = True):
+    def __init__(self, config: ExperimentCommonConfig, model_name, allow_downsample = True, seed: int|None = None):
         super().__init__()
 
         self.batch_size = config.batch_size
         self.num_workers = config.num_workers
         self.img_max_width = config.img_max_width
+        self.seed = seed
+
+        self.train_generator = None
+        if self.seed is not None:
+            self.train_generator = torch.Generator().manual_seed(self.seed)
         
         self.train_sets = []
         self.val_sets = []
@@ -102,10 +107,10 @@ class CTCDatasetMerged(LightningDataModule):
 
     def train_dataloader(self):
         if self.has_downsample_dataset:
-            sampler = ConcatDatasetCycleSampler(self.train_set, self.samples_per_batch)
+            sampler = ConcatDatasetCycleSampler(self.train_set, self.samples_per_batch, generator=self.train_generator)
             return torch.utils.data.DataLoader(self.train_set, batch_size=self.batch_size, num_workers=self.num_workers, sampler=sampler, collate_fn=ctc_batch_preparation)
         else:
-            return torch.utils.data.DataLoader(self.train_set, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True, collate_fn=ctc_batch_preparation)
+            return torch.utils.data.DataLoader(self.train_set, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True, generator=self.train_generator, collate_fn=ctc_batch_preparation)
     
     def val_dataloader(self):
         return torch.utils.data.DataLoader(self.val_set, 1, num_workers=self.num_workers)

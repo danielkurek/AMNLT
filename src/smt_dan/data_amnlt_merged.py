@@ -26,12 +26,17 @@ class MergedDatasets(ConcatDataset):
         return max([x.get_max_seqlen() for x in self.datasets])
 
 class AMNLTDatasetMerged(LightningDataModule):
-    def __init__(self, config: ExperimentCommonConfig):
+    def __init__(self, config: ExperimentCommonConfig, seed: int|None = None):
         super().__init__()
 
         self.batch_size = config.batch_size
         self.num_workers = config.num_workers
         self.img_max_width = config.img_max_width
+        self.seed = seed
+
+        self.train_generator = None
+        if self.seed is not None:
+            self.train_generator = torch.Generator().manual_seed(self.seed)
         
         self.train_sets = []
         self.val_sets = []
@@ -55,7 +60,7 @@ class AMNLTDatasetMerged(LightningDataModule):
         self.test_set.set_dictionaries(w2i, i2w)
 
     def train_dataloader(self):
-        return torch.utils.data.DataLoader(self.train_set, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True, collate_fn=batch_preparation_img2seq)
+        return torch.utils.data.DataLoader(self.train_set, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True, generator=self.train_generator, collate_fn=batch_preparation_img2seq)
     
     def val_dataloader(self):
         return torch.utils.data.DataLoader(self.val_set, batch_size=self.batch_size, num_workers=self.num_workers, collate_fn=batch_preparation_img2seq)
