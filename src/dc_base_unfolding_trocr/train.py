@@ -38,6 +38,7 @@ def train(
     fine_tune=False,
     pretrain_model_path=None,
     ctc="greedy",
+    gradient_accumulation=1,
     threads=2,
     seed = 42
 ):
@@ -152,6 +153,7 @@ def train(
         benchmark=False,
         precision="16-mixed",  # Mixed precision training
         fast_dev_run=False,  # Set to True to check if everything is working
+        accumulate_grad_batches=gradient_accumulation,
     )
     trainer.fit(model, datamodule=datamodule)
 
