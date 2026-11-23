@@ -1,10 +1,14 @@
 {
-    "data":{
-      "dataset_name": "../../../datasets/common_encoding_deduplicated/GregoSynth_staffLevel",
-      "batch_size": 1,
-      "vocab_name": "GregoSynth_common",
-      "transcript_format": "music_aware",
-      "num_workers": 2,
-      "resize": [300, null]
-    }
+    "name": "GregoSynth_common_fixed_height",
+    "vocab_name": "GregoSynth_common",
+    "batch_size": 1,
+    "num_workers": 2,
+    "img_max_width": 3600,
+    "data": [
+        {
+            "dataset_name": "../../../datasets/common_encoding_deduplicated/GregoSynth_staffLevel",
+            "transcript_format": "music_aware",
+            "resize": [256, null]
+        }
+    ]
 }
