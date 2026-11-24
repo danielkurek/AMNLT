@@ -5,6 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "AMNLT_replication"
 version = "2026.0.0"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     # "gabcparser @ {root:uri}/GabcParser/", # cannot install from submodule since AMNLT specifies git
     "AMNLT @ {root:uri}/AMNLT_original_models/",

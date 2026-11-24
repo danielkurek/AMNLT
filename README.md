@@ -2,6 +2,23 @@
 
 A collection of models that can be used for [AMNLT dataset](https://huggingface.co/datasets/PRAIG/AMNLT).
 
+## Installation
+
+The experiments were done on Python 3.14. Clone the repository with its submodules and install the pinned dependencies from the repository root (`requirements.txt` also installs this repository and `AMNLT_original_models` in the versions given by the submodule commit):
+
+```bash
+git clone --recurse-submodules https://github.com/danielkurek/AMNLT
+cd AMNLT
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+```
+
+This installs the default PyTorch build from PyPI (CUDA 13). For older GPUs/NVIDIA drivers, install the CUDA 12.6 build instead:
+
+```bash
+pip install --extra-index-url https://download.pytorch.org/whl/cu126 -r requirements.txt
+```
+
 ## Generating datasets
 
 Part of this work is focused on unifying encoding of all of the datasets presented in AMNLT paper. It is not clear if the datasets can be redistributed so this repository provides a way to generate datasets with unified encoding given that you have access to the huggingface datasets.
