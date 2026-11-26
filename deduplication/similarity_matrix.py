@@ -59,7 +59,8 @@ def main(args):
     print("Similarity computation:")
     with tqdm(total=len(strings)) as pbar:
         for i in range(len(strings)):
-            row_distances = engine(sz.Strs([strings[i]] * (len(strings)-i-1)), strings[i+1:], device=cpu_scope)
+            # StringZilla 5 returns a cross-product matrix of shape (len(queries), len(candidates)), so we use a single query
+            row_distances = engine(sz.Strs([strings[i]]), strings[i+1:], device=cpu_scope)[0]
             distances[index:index+len(row_distances)] = np.clip(row_distances, 0, clip_max)
             index += len(row_distances)
             pbar.update(1)

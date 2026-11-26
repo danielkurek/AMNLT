@@ -4,19 +4,19 @@ A collection of models that can be used for [AMNLT dataset](https://huggingface.
 
 ## Installation
 
-The experiments were done on Python 3.14. Clone the repository with its submodules and install the pinned dependencies from the repository root (`requirements.txt` also installs this repository and `AMNLT_original_models` in the versions given by the submodule commit):
+The experiments were done on Python 3.14. Clone the repository with its submodules, then install the pinned dependencies (`requirements.txt`) together with this repository (`-e .`) from the repository root. `AMNLT_original_models` is installed from the submodule checkout:
 
 ```bash
 git clone --recurse-submodules https://github.com/danielkurek/AMNLT
 cd AMNLT
 python -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
+pip install --extra-index-url https://download.pytorch.org/whl/cu130 -r requirements.txt -e .
 ```
 
-This installs the default PyTorch build from PyPI (CUDA 13). For older GPUs/NVIDIA drivers, install the CUDA 12.6 build instead:
+PyTorch is pinned to `2.14.1+cu130` (CUDA 13.0 build), which is hosted on the PyTorch index rather than PyPI, so the `--extra-index-url` is required. This build supports GPUs from Turing (RTX 20xx, Quadro RTX) up to Blackwell (RTX 50xx), i.e. compute capabilities `sm_75`–`sm_120`. It needs an NVIDIA driver supporting CUDA 13.0 or newer (driver 580+; check the "CUDA Version" in the `nvidia-smi` header). Verify the installation with:
 
 ```bash
-pip install --extra-index-url https://download.pytorch.org/whl/cu126 -r requirements.txt
+python -c "import torch; print(torch.__version__, torch.cuda.get_arch_list(), torch.cuda.get_device_name())"
 ```
 
 ## Generating datasets
