@@ -1,10 +1,14 @@
 {
-    "data":{
+  "name": "Solesmes_common",
+  "vocab_name": "Solesmes_common",
+  "batch_size": 1,
+  "num_workers": 2,
+  "img_max_width": 3600,
+  "data": [
+    {
       "dataset_name": "../../../datasets/common_encoding_deduplicated/Solesmes_staffLevel",
-      "batch_size": 1,
-      "vocab_name": "Solesmes_common",
       "transcript_format": "music_aware",
-      "num_workers": 2,
-      "reduce_ratio": 1.0
+      "resize": null
     }
+  ]
 }
